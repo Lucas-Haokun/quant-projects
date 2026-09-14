@@ -4,7 +4,7 @@ Implementation of the Longstaff-Schwartz (Least-Squares Monte Carlo) algorithm f
 
 ## Overview
 
-This project implements a Monte Carlo framework for pricing European and American options under the Geometric Brownian Motion (GBM) model. The core contribution is an implementation of the Longstaff-Schwartz (LSM) algorithm for American put options, which solves an optimal stopping problem via backward induction and least-squares regression.
+This project implements a Monte Carlo framework for pricing European and American options under the Geometric Brownian Motion (GBM) model. The core contribution is an implementation of the Longstaff-Schwartz (LSM) algorithm for American put options, which solves an optimal stopping problem through backward induction and least-squares regression.
 
 ## Core Algorithm
 
