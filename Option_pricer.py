@@ -5,17 +5,6 @@ import matplotlib.pyplot as plt
 class OptionPricer:
 
     def __init__(self, S0, K, r, sigma, T, N=252, M=100000, seed=42):
-        """
-        参数:
-        S0 : float - 初始资产价格
-        K  : float - 行权价
-        r  : float - 无风险利率（年化）
-        sigma : float - 波动率（年化）
-        T  : float - 到期时间（年）
-        N  : int   - 时间步数
-        M  : int   - 模拟路径数量
-        seed : int - 随机种子(默认42, 保证可复现)
-        """
         self.S0 = S0
         self.K = K
         self.r = r
@@ -24,35 +13,24 @@ class OptionPricer:
         self.N = N
         self.M = M
         self.seed = seed
-        self.price_paths = None   # 用于存储生成的路径
-        self.S_T = None           # 用于存储到期价格
+        self.dt = T / N
+        self.price_paths = None
+        self.S_T = None
 
     def simulate(self):
-        """
-        生成 M 条 GBM 路径，并存储到期价格
-        """
         np.random.seed(self.seed)
-        dt = self.T / self.N
 
-        # 生成随机冲击矩阵 (M x N)
         Z = np.random.normal(0, 1, (self.M, self.N))
 
-        # 计算每日对数收益率（风险中性）
-        # 注意：这里用 r - 0.5*sigma^2，因为我们要做的是风险中性定价
         daily_returns = (self.r - 0.5 * self.sigma**2) * \
-            dt + self.sigma * np.sqrt(dt) * Z
+            self.dt + self.sigma * np.sqrt(self.dt) * Z
 
-        # 计算累计对数收益率和价格路径
         log_returns = np.cumsum(daily_returns, axis=1)
         self.price_paths = self.S0 * np.exp(log_returns)
 
-        # 提取到期价格（所有路径的最后一个时间点）
         self.S_T = self.price_paths[:, -1]
 
     def price_call(self):
-        """
-        计算欧式看涨期权价格
-        """
         if self.S_T is None:
             self.simulate()
 
@@ -61,9 +39,6 @@ class OptionPricer:
         return price
 
     def price_put(self):
-        """
-        计算欧式看跌期权价格
-        """
         if self.S_T is None:
             self.simulate()
 
@@ -71,10 +46,83 @@ class OptionPricer:
         price = np.exp(-self.r * self.T) * np.mean(payoffs)
         return price
 
+    def price_american_put(self):
+        if self.price_paths is None:
+            self.simulate()
+        paths = self.price_paths
+        M, N = paths.shape
+        cashflow = np.maximum(self.K - paths[:, -1], 0)
+        exercise_time = np.full(M, N - 1)
+        for t in range(N - 2, 0, -1):
+            S_t = paths[:, t]
+            intrinsic = np.maximum(self.K - S_t, 0)
+            itm = intrinsic > 0
+            if np.sum(itm) > 0:
+                cashflow_discounted = cashflow[itm] * \
+                    np.exp(-self.r * self.dt * (exercise_time[itm] - t))
+                X = np.column_stack([
+                    np.ones(np.sum(itm)),
+                    S_t[itm],
+                    S_t[itm] ** 2
+                ])
+                beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
+                continuation = X @ beta
+                exercise = intrinsic[itm] > continuation
+                itm_indices = np.where(itm)[0]
+                exercise_indices = itm_indices[exercise]
+                cashflow[exercise_indices] = intrinsic[exercise_indices]
+                exercise_time[exercise_indices] = t
+        american_price = np.mean(
+            cashflow * np.exp(-self.r * self.dt * exercise_time))
+        return american_price
+
+    def plot_exercise_boundary(self):
+        if self.price_paths is None:
+            self.simulate()
+        paths = self.price_paths
+        M, N = paths.shape
+        cashflow = np.maximum(self.K - paths[:, -1], 0)
+        exercise_time = np.full(M, N - 1)
+        for t in range(N - 2, 0, -1):
+            S_t = paths[:, t]
+            intrinsic = np.maximum(self.K - S_t, 0)
+            itm = intrinsic > 0
+            if np.sum(itm) > 0:
+                cashflow_discounted = cashflow[itm] * np.exp(
+                    -self.r * self.dt * (exercise_time[itm] - t)
+                )
+                X = np.column_stack([
+                    np.ones(np.sum(itm)),
+                    S_t[itm],
+                    S_t[itm] ** 2
+                ])
+            beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
+            continuation = X @ beta
+            exercise = intrinsic[itm] > continuation
+            itm_indices = np.where(itm)[0]
+            exercise_indices = itm_indices[exercise]
+            cashflow[exercise_indices] = intrinsic[exercise_indices]
+            exercise_time[exercise_indices] = t
+        boundary_times = []
+        boundary_prices = []
+        for t in range(1, N):
+            exercised = exercise_time == t
+            if np.sum(exercised) > 0:
+                price_95 = np.percentile(paths[exercised, t], 95)
+                boundary_times.append(t)
+                boundary_prices.append(price_95)
+        plt.figure(figsize=(10, 5))
+        plt.plot(boundary_times, boundary_prices, color='red', linewidth=2)
+        plt.axhline(self.K, color='black', linestyle='--',
+                    linewidth=1.5, label=f'Strike K = {self.K}')
+        plt.title('Optimal Exercise Boundary for American Put (95th Percentile)')
+        plt.xlabel('Time Step')
+        plt.ylabel('Stock Price at Exercise')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()
+
     def plot_distribution(self):
-        """
-        绘制到期价格分布直方图，并标出行权价
-        """
         if self.S_T is None:
             self.simulate()
 
@@ -93,13 +141,10 @@ class OptionPricer:
         plt.show()
 
     def plot_convergence(self):
-        """
-        绘制期权价格随模拟路径数量增加而收敛的过程
-        """
+
         if self.S_T is None:
             self.simulate()
 
-        # 计算累积平均值
         payoffs = np.maximum(self.S_T - self.K, 0)
         cumulative_mean = np.cumsum(payoffs) / np.arange(1, self.M + 1)
         cumulative_price = np.exp(-self.r * self.T) * cumulative_mean
