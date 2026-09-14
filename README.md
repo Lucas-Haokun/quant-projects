@@ -24,6 +24,18 @@ This project implements a Monte Carlo framework for pricing European and America
 
 The boundary separates the "exercise now" region (below the curve) from the "continue holding" region (above the curve).
 
+### Terminal Price Distribution
+
+![Terminal Distribution](figures/terminal_distribution.png)
+
+Distribution of simulated terminal prices under risk-neutral GBM. The mean (green line) is close to the theoretical risk-neutral expectation `S0 * exp(rT)`.
+
+### Monte Carlo Convergence
+
+![Convergence](figures/convergence.png)
+
+Convergence of the Monte Carlo option price as the number of simulations increases. The price stabilizes after approximately 20,000 paths.
+
 ## Project Structure
 
 ```
