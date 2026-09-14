@@ -117,6 +117,7 @@ class OptionPricer:
                 price_95 = np.percentile(paths[exercised, t], 95)
                 boundary_times.append(t)
                 boundary_prices.append(price_95)
+
         plt.figure(figsize=(10, 5))
         plt.plot(boundary_times, boundary_prices, color='red', linewidth=2)
         plt.axhline(self.K, color='black', linestyle='--',
@@ -126,6 +127,8 @@ class OptionPricer:
         plt.ylabel('Stock Price at Exercise')
         plt.legend()
         plt.grid(True, alpha=0.3)
+        plt.savefig('figures/exercise_boundary.png',
+                    dpi=300, bbox_inches='tight')
         plt.show()
 
     def plot_distribution(self):
@@ -144,6 +147,8 @@ class OptionPricer:
         plt.ylabel('Frequency')
         plt.legend()
         plt.grid(True, alpha=0.3)
+        plt.savefig('figures/terminal_distribution.png',
+                    dpi=300, bbox_inches='tight')
         plt.show()
 
     def plot_convergence(self):
@@ -164,4 +169,5 @@ class OptionPricer:
         plt.ylabel('Option Price')
         plt.legend()
         plt.grid(True, alpha=0.3)
+        plt.savefig('figures/convergence.png', dpi=300, bbox_inches='tight')
         plt.show()
