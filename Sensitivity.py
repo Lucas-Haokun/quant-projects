@@ -4,6 +4,8 @@ from Option_pricer import OptionPricer
 
 
 def run_sensitivity(param_name, values, fixed_params):
+
+    # Vary one parameter while holding all others fixed
     print(f"\n===== Sensitivity Analysis: {param_name} =====")
     results = []
 
@@ -86,9 +88,12 @@ def plot_boundaries(param_name, values, fixed_params):
 
 
 if __name__ == "__main__":
+
+    # Base parameters: S0=100, K=105, r=0.05, sigma=0.25, T=1.0
     base_params = dict(S0=100, K=105, r=0.05,
                        sigma=0.25, T=1.0, N=252, M=50000)
 
+    # Run sensitivity analysis for each parameter
     run_sensitivity('sigma', [0.10, 0.20, 0.30, 0.40], base_params)
     plot_boundaries('sigma', [0.10, 0.20, 0.30, 0.40], base_params)
 
