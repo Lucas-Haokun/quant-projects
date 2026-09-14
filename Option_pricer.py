@@ -70,14 +70,14 @@ class OptionPricer:
                     S_t[itm] ** 2
                 ])
 
-                # OLS regression to estimate continuation value conditional on S_t
-                beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
-                continuation = X @ beta
-                exercise = intrinsic[itm] > continuation
-                itm_indices = np.where(itm)[0]
-                exercise_indices = itm_indices[exercise]
-                cashflow[exercise_indices] = intrinsic[exercise_indices]
-                exercise_time[exercise_indices] = t
+        # OLS regression to estimate continuation value conditional on S_t
+        beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
+        continuation = X @ beta
+        exercise = intrinsic[itm] > continuation
+        itm_indices = np.where(itm)[0]
+        exercise_indices = itm_indices[exercise]
+        cashflow[exercise_indices] = intrinsic[exercise_indices]
+        exercise_time[exercise_indices] = t
         american_price = np.mean(
             cashflow * np.exp(-self.r * self.dt * exercise_time))
         return american_price
