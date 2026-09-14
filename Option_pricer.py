@@ -102,13 +102,13 @@ class OptionPricer:
                     S_t[itm],
                     S_t[itm] ** 2
                 ])
-            beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
-            continuation = X @ beta
-            exercise = intrinsic[itm] > continuation
-            itm_indices = np.where(itm)[0]
-            exercise_indices = itm_indices[exercise]
-            cashflow[exercise_indices] = intrinsic[exercise_indices]
-            exercise_time[exercise_indices] = t
+                beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
+                continuation = X @ beta
+                exercise = intrinsic[itm] > continuation
+                itm_indices = np.where(itm)[0]
+                exercise_indices = itm_indices[exercise]
+                cashflow[exercise_indices] = intrinsic[exercise_indices]
+                exercise_time[exercise_indices] = t
         boundary_times = []
         boundary_prices = []
         for t in range(1, N):
