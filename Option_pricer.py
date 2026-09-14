@@ -22,9 +22,11 @@ class OptionPricer:
 
         Z = np.random.normal(0, 1, (self.M, self.N))
 
+        # Ito correction: risk-neutral log-drift is (r - 0.5 * sigma^2)
         daily_returns = (self.r - 0.5 * self.sigma**2) * \
             self.dt + self.sigma * np.sqrt(self.dt) * Z
 
+        # Cumulative log-returns: additive in log space, then exponentiated back to prices
         log_returns = np.cumsum(daily_returns, axis=1)
         self.price_paths = self.S0 * np.exp(log_returns)
 
@@ -57,6 +59,8 @@ class OptionPricer:
             S_t = paths[:, t]
             intrinsic = np.maximum(self.K - S_t, 0)
             itm = intrinsic > 0
+
+            # Only in-the-money paths matter for exercise decision
             if np.sum(itm) > 0:
                 cashflow_discounted = cashflow[itm] * \
                     np.exp(-self.r * self.dt * (exercise_time[itm] - t))
@@ -65,6 +69,8 @@ class OptionPricer:
                     S_t[itm],
                     S_t[itm] ** 2
                 ])
+
+                # OLS regression to estimate continuation value conditional on S_t
                 beta = np.linalg.lstsq(X, cashflow_discounted, rcond=None)[0]
                 continuation = X @ beta
                 exercise = intrinsic[itm] > continuation

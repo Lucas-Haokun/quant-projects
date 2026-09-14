@@ -1,10 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-# ========== 参数设置 ==========
+
 S0 = 100
 K = 105
-r = 0.05          # 无风险利率（替换原来的 mu）
+r = 0.05
 sigma = 0.25
 T = 1.0
 N = 252
