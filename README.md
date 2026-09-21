@@ -98,4 +98,4 @@ V(t, S) = max( intrinsic(t, S), E[ exp(-r * dt) * V(t + dt, S_{t+dt}) ] )
 
 Haokun Li  
 BSc Mathematics & Statistics, King's College London  
-haokun.li@kcl.ac.uk | linkedin.com/in/haokun-li-kcl | github.com/Lucas-Haokun
+haokun.2.li@kcl.ac.uk | linkedin.com/in/haokun-li-kcl | github.com/Lucas-Haokun
